@@ -2,7 +2,7 @@ const video = document.getElementById('webcam-stream');
 const canvas = document.getElementById('qr-canvas'); // Renaming this to 'ocr-canvas' in HTML is recommended
 const captureButton = document.getElementById('capture-button');
 const statusMessage = document.getElementById('status-message');
-const webhookUrl = "https://sanjana91.app.n8n.cloud/webhook/3f02f382-0683-4066-afca-16ca80c53cd5";
+const webhookUrl = "https://sanjana91.app.n8n.cloud/webhook-test/3f02f382-0683-4066-afca-16ca80c53cd5";
 
 let stream; // To hold the camera stream
 let ocrWorker; // To hold the Tesseract.js worker

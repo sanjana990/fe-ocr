@@ -17,7 +17,7 @@ function ScanView() {
 
 
   const webhookUrl =
-    'https://sanjana91.app.n8n.cloud/webhook/3f02f382-0683-4066-afca-16ca80c53cd5';
+    'https://sanjana91.app.n8n.cloud/webhook-test/3f02f382-0683-4066-afca-16ca80c53cd5';
 
   // ---- QR Camera + OCR Start ----
   useEffect(() => {
