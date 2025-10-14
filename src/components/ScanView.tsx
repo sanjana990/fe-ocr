@@ -17,7 +17,7 @@ function ScanView() {
 
 
   const webhookUrl =
-    'https://sanjana91.app.n8n.cloud/webhook-test/3f02f382-0683-4066-afca-16ca80c53cd5';
+    'https://sanjana91.app.n8n.cloud/webhook/3f02f382-0683-4066-afca-16ca80c53cd5';
 
   // ---- QR Camera + OCR Start ----
   useEffect(() => {
@@ -113,10 +113,13 @@ function ScanView() {
         setStatus(`✅ Data sent successfully.`);
         stopCamera();
       } else {
-        setStatus(`❌ Webhook error: ${res.status}`);
+        const errorText = await res.text();
+        setStatus(`❌ Webhook error: ${res.status} - ${errorText}`);
+        console.error('Webhook error details:', { status: res.status, statusText: res.statusText, body: errorText });
       }
     } catch (e) {
-      setStatus('Network error while posting data.');
+      console.error('Network error:', e);
+      setStatus(`Network error: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   };
 
