@@ -47,6 +47,16 @@ from app.services.google_vision_service import google_vision_service
 from app.core.mongodb import connect_to_mongo, close_mongo_connection, get_collection
 from app.services.mongodb_service import MongoDBService
 
+# Initialize MongoDB service
+mongodb_service = None
+
+def get_mongodb_service():
+    """Get MongoDB service instance, ensuring it's initialized"""
+    global mongodb_service
+    if mongodb_service is None:
+        raise HTTPException(status_code=500, detail="MongoDB service not initialized. Please check server startup.")
+    return mongodb_service
+
 # Import LinkedIn scraper
 try:
     from linkedin_scraper import LinkedInScraperService
@@ -284,7 +294,8 @@ async def process_business_card(file: UploadFile = File(...)):
                 )
                 
                 # Save to MongoDB
-                saved_data = await mongodb_service.save_structured_data(structured_data)
+                service = get_mongodb_service()
+                saved_data = await service.save_structured_data(structured_data)
                 logger.info("✅ Business card data saved to MongoDB", id=saved_data.get("id"))
                 
             except Exception as e:
@@ -784,7 +795,8 @@ async def scrape_linkedin_company(
             )
             
             # Save to MongoDB
-            saved_company = await mongodb_service.save_linkedin_company(linkedin_company)
+            service = get_mongodb_service()
+            saved_company = await service.save_linkedin_company(linkedin_company)
             if saved_company:
                 logger.info(f"✅ LinkedIn company saved to MongoDB: {result.get('company_name')}")
             else:
@@ -860,7 +872,8 @@ async def create_structured_data(data: dict):
         structured_data = StructuredData(**data)
         
         # Save to MongoDB
-        result = await mongodb_service.save_structured_data(structured_data)
+        service = get_mongodb_service()
+        result = await service.save_structured_data(structured_data)
         
         logger.info("✅ Structured data saved to MongoDB", id=result.get("id"))
         return {
@@ -880,10 +893,11 @@ async def get_structured_data(
 ):
     """Get structured data from MongoDB with optional filtering"""
     try:
+        service = get_mongodb_service()
         if source:
-            data = await mongodb_service.get_structured_data_by_source(source, limit)
+            data = await service.get_structured_data_by_source(source, limit)
         else:
-            data = await mongodb_service.get_all_structured_data(limit, skip)
+            data = await service.get_all_structured_data(limit, skip)
         
         logger.info("✅ Structured data retrieved from MongoDB", count=len(data))
         return {
@@ -900,7 +914,8 @@ async def get_structured_data(
 async def delete_structured_data(data_id: str):
     """Delete structured data by ID from MongoDB"""
     try:
-        success = await mongodb_service.delete_structured_data(data_id)
+        service = get_mongodb_service()
+        success = await service.delete_structured_data(data_id)
         if success:
             logger.info("✅ Structured data deleted from MongoDB", id=data_id)
             return {
@@ -925,7 +940,8 @@ async def create_linkedin_company(data: dict):
         linkedin_company = LinkedInCompany(**data)
         
         # Save to MongoDB
-        result = await mongodb_service.save_linkedin_company(linkedin_company)
+        service = get_mongodb_service()
+        result = await service.save_linkedin_company(linkedin_company)
         
         logger.info("✅ LinkedIn company saved to MongoDB", id=result.get("id"))
         return {
@@ -946,12 +962,13 @@ async def get_linkedin_companies(
 ):
     """Get LinkedIn companies from MongoDB with optional filtering and search"""
     try:
+        service = get_mongodb_service()
         if search:
-            data = await mongodb_service.search_linkedin_companies(search, limit)
+            data = await service.search_linkedin_companies(search, limit)
         elif industry:
-            data = await mongodb_service.get_linkedin_companies_by_industry(industry, limit)
+            data = await service.get_linkedin_companies_by_industry(industry, limit)
         else:
-            data = await mongodb_service.get_all_linkedin_companies(limit, skip)
+            data = await service.get_all_linkedin_companies(limit, skip)
         
         logger.info("✅ LinkedIn companies retrieved from MongoDB", count=len(data))
         return {
@@ -968,7 +985,8 @@ async def get_linkedin_companies(
 async def delete_linkedin_company(company_id: str):
     """Delete LinkedIn company by ID from MongoDB"""
     try:
-        success = await mongodb_service.delete_linkedin_company(company_id)
+        service = get_mongodb_service()
+        success = await service.delete_linkedin_company(company_id)
         if success:
             logger.info("✅ LinkedIn company deleted from MongoDB", id=company_id)
             return {
@@ -987,7 +1005,8 @@ async def delete_linkedin_company(company_id: str):
 async def update_linkedin_company(company_id: str, data: dict):
     """Update LinkedIn company by ID in MongoDB"""
     try:
-        result = await mongodb_service.update_linkedin_company(company_id, data)
+        service = get_mongodb_service()
+        result = await service.update_linkedin_company(company_id, data)
         if result:
             logger.info("✅ LinkedIn company updated in MongoDB", id=company_id)
             return {

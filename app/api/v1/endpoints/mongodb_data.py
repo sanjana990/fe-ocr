@@ -14,13 +14,23 @@ router = APIRouter()
 logger = structlog.get_logger(__name__)
 
 # Initialize MongoDB service
-mongodb_service = MongoDBService()
+mongodb_service = None
+
+def get_mongodb_service():
+    """Get MongoDB service instance, ensuring it's initialized"""
+    global mongodb_service
+    if mongodb_service is None:
+        mongodb_service = MongoDBService()
+        # Initialize the database connection
+        mongodb_service._get_db()
+    return mongodb_service
 
 @router.post("/structured-data")
 async def create_structured_data(data: StructuredData):
     """Create new structured data entry"""
     try:
-        result = await mongodb_service.save_structured_data(data)
+        service = get_mongodb_service()
+        result = await service.save_structured_data(data)
         logger.info("Structured data created successfully", id=result.get("id"))
         return {
             "success": True,
@@ -39,10 +49,11 @@ async def get_structured_data(
 ):
     """Get structured data with optional filtering"""
     try:
+        service = get_mongodb_service()
         if source:
-            data = await mongodb_service.get_structured_data_by_source(source, limit)
+            data = await service.get_structured_data_by_source(source, limit)
         else:
-            data = await mongodb_service.get_all_structured_data(limit, skip)
+            data = await service.get_all_structured_data(limit, skip)
         
         logger.info("Structured data retrieved successfully", count=len(data))
         return {
@@ -59,7 +70,8 @@ async def get_structured_data(
 async def delete_structured_data(data_id: str):
     """Delete structured data by ID"""
     try:
-        success = await mongodb_service.delete_structured_data(data_id)
+        service = get_mongodb_service()
+        success = await service.delete_structured_data(data_id)
         if success:
             return {
                 "success": True,
@@ -77,7 +89,8 @@ async def delete_structured_data(data_id: str):
 async def create_linkedin_company(data: LinkedInCompany):
     """Create new LinkedIn company entry"""
     try:
-        result = await mongodb_service.save_linkedin_company(data)
+        service = get_mongodb_service()
+        result = await service.save_linkedin_company(data)
         logger.info("LinkedIn company created successfully", id=result.get("id"))
         return {
             "success": True,
@@ -97,12 +110,13 @@ async def get_linkedin_companies(
 ):
     """Get LinkedIn companies with optional filtering and search"""
     try:
+        service = get_mongodb_service()
         if search:
-            data = await mongodb_service.search_linkedin_companies(search, limit)
+            data = await service.search_linkedin_companies(search, limit)
         elif industry:
-            data = await mongodb_service.get_linkedin_companies_by_industry(industry, limit)
+            data = await service.get_linkedin_companies_by_industry(industry, limit)
         else:
-            data = await mongodb_service.get_all_linkedin_companies(limit, skip)
+            data = await service.get_all_linkedin_companies(limit, skip)
         
         logger.info("LinkedIn companies retrieved successfully", count=len(data))
         return {
@@ -119,7 +133,8 @@ async def get_linkedin_companies(
 async def delete_linkedin_company(company_id: str):
     """Delete LinkedIn company by ID"""
     try:
-        success = await mongodb_service.delete_linkedin_company(company_id)
+        service = get_mongodb_service()
+        success = await service.delete_linkedin_company(company_id)
         if success:
             return {
                 "success": True,
@@ -137,7 +152,8 @@ async def delete_linkedin_company(company_id: str):
 async def update_linkedin_company(company_id: str, data: Dict[str, Any]):
     """Update LinkedIn company by ID"""
     try:
-        result = await mongodb_service.update_linkedin_company(company_id, data)
+        service = get_mongodb_service()
+        result = await service.update_linkedin_company(company_id, data)
         if result:
             return {
                 "success": True,
@@ -159,7 +175,8 @@ async def get_visitors(
 ):
     """Get all visitors"""
     try:
-        data = await mongodb_service.get_all_visitors(limit, skip)
+        service = get_mongodb_service()
+        data = await service.get_all_visitors(limit, skip)
         logger.info("Visitors retrieved successfully", count=len(data))
         return {
             "success": True,
@@ -178,7 +195,8 @@ async def get_companies(
 ):
     """Get all companies"""
     try:
-        data = await mongodb_service.get_all_companies(limit, skip)
+        service = get_mongodb_service()
+        data = await service.get_all_companies(limit, skip)
         logger.info("Companies retrieved successfully", count=len(data))
         return {
             "success": True,
